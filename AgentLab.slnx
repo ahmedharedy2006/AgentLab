@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="AgentLab/AgentLab.csproj" />
+  <Project Path="Demo/Demo.csproj" />
 </Solution>

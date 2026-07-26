@@ -19,9 +19,9 @@ public static class AgentLabHtml
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
 :root {
     --bg: #ffffff;
@@ -244,6 +244,7 @@ body {
 }
 .btn-icon:hover { background: var(--bg-subtle); color: var(--text); }
 .btn-icon svg { width: 18px; height: 18px; }
+.sidebar-close { display: none; margin-left: auto; }
 .header-title {
     flex: 1; text-align: center;
     font-size: 14px; font-weight: 500;
@@ -288,6 +289,7 @@ body {
     line-height: 1.65;
     white-space: normal;
     word-wrap: break-word;
+    overflow-x: auto;
     box-shadow: var(--shadow-sm);
 }
 .assistant-bubble p { margin: 0 0 10px; }
@@ -424,6 +426,59 @@ textarea::placeholder { color: var(--text-muted); }
     opacity: .35;
 }
 .empty-state p { margin: 0; font-size: 14px; font-weight: 450; }
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.3);
+    z-index: 90;
+}
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -278px;
+        top: 0;
+        bottom: 0;
+        z-index: 100;
+        width: 278px;
+        border-right: 1px solid var(--sidebar-border);
+        transition: left .25s cubic-bezier(.4,0,.2,1);
+    }
+    .sidebar.open {
+        left: 0;
+    }
+    .sidebar.condensed {
+        width: 278px;
+    }
+    .sidebar-close {
+        display: flex;
+    }
+    .sidebar-backdrop.show {
+        display: block;
+    }
+    .user-bubble { max-width: 88%; }
+    .assistant-bubble { max-width: 95%; }
+    .assistant-bubble table { font-size: 12px; }
+    .assistant-bubble th, .assistant-bubble td { padding: 4px 6px; }
+}
+@media (max-width: 480px) {
+    .message { padding: 4px 10px; }
+    .user-bubble { padding: 8px 14px; font-size: 13px; max-width: 92%; }
+    .assistant-bubble { padding: 10px 14px; font-size: 13px; max-width: 98%; }
+    .composer { padding: 8px 10px 14px; }
+    .composer-inner { gap: 6px; }
+    textarea { padding: 10px 12px; font-size: 13px; min-height: 40px; }
+    .btn-send { width: 40px; height: 40px; }
+    .btn-send svg { width: 16px; height: 16px; }
+    .header { height: 48px; padding: 0 10px; }
+    .header-title { font-size: 13px; }
+    .assistant-bubble h1 { font-size: 17px; }
+    .assistant-bubble h2 { font-size: 15px; }
+    .assistant-bubble h3 { font-size: 14px; }
+    .assistant-bubble pre { padding: 10px 12px; }
+    .assistant-bubble pre code { font-size: 11px; }
+    .empty-state svg { width: 32px; height: 32px; }
+}
 </style>
 </head>
 <body>
@@ -440,9 +495,13 @@ textarea::placeholder { color: var(--text-muted); }
             <button class="btn-new-chat" id="new-chat" title="New chat">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
+            <button class="btn-icon sidebar-close" id="sidebar-close" title="Close sidebar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
         </div>
         <div class="sidebar-list" id="chat-list"></div>
     </div>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <div class="main">
         <header class="header">
@@ -495,6 +554,8 @@ const themeToggle = document.getElementById("theme-toggle");
 const iconSun = document.getElementById("theme-icon-sun");
 const iconMoon = document.getElementById("theme-icon-moon");
 const emptyState = document.getElementById("empty-state");
+const backdrop = document.getElementById("sidebar-backdrop");
+const sidebarClose = document.getElementById("sidebar-close");
 
 let thinkingEl = null;
 
@@ -509,11 +570,22 @@ setTheme(getTheme());
 themeToggle.addEventListener("click", () => setTheme(getTheme() === "dark" ? "light" : "dark"));
 
 function toggleSidebar() {
-    sidebar.classList.toggle("condensed");
-    localStorage.setItem("agentlab-condensed", sidebar.classList.contains("condensed"));
+    if (window.innerWidth <= 768) {
+        sidebar.classList.toggle("open");
+        backdrop.classList.toggle("show");
+    } else {
+        sidebar.classList.toggle("condensed");
+        localStorage.setItem("agentlab-condensed", sidebar.classList.contains("condensed"));
+    }
+}
+function closeSidebar() {
+    sidebar.classList.remove("open");
+    backdrop.classList.remove("show");
 }
 if (localStorage.getItem("agentlab-condensed") === "true") sidebar.classList.add("condensed");
 sidebarToggle.addEventListener("click", toggleSidebar);
+backdrop.addEventListener("click", closeSidebar);
+sidebarClose.addEventListener("click", closeSidebar);
 
 function getChats() { return JSON.parse(localStorage.getItem("agentlab-chats") || "[]"); }
 function saveChats(c) { localStorage.setItem("agentlab-chats", JSON.stringify(c)); }
@@ -605,7 +677,7 @@ function renderSidebar() {
     chatList.querySelectorAll(".chat-item").forEach(el => {
         el.addEventListener("click", e => {
             if (e.target.closest(".chat-item-delete")) return;
-            setActiveId(el.dataset.id); loadChat(el.dataset.id);
+            setActiveId(el.dataset.id); loadChat(el.dataset.id); closeSidebar();
         });
     });
     chatList.querySelectorAll(".chat-item-delete").forEach(btn => {
@@ -648,6 +720,7 @@ function init() {
     loadChat(a.id); renderSidebar();
 }
 sendButton.addEventListener("click", sendMessage);
+newChatBtn.addEventListener("click", () => { const c = createChat(); setActiveId(c.id); loadChat(c.id); });
 messageInput.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
 messageInput.addEventListener("input", autoResize);
 init();
