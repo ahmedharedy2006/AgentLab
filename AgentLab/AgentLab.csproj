@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <PackageId>AgentLab</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Ahmed Haredy</Authors>
+    <Description>AgentLab is a lightweight, framework-agnostic AI chat playground for ASP.NET Core applications.</Description>
+    <PackageTags>chat;ui;ai;agent;aspnetcore;chatbot</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
+    <IsPackable>true</IsPackable>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/AgentLab/AgentLab</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/AgentLab/AgentLab</PackageProjectUrl>
+    <Copyright>Copyright (c) 2026 Ahmed Haredy</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
